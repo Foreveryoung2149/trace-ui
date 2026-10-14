@@ -7,7 +7,7 @@ export async function loadTracking(): Promise<{shipment?: TimelineShipment; erro
     const mode = starterMode(process.env.TRACE_MODE);
     if (mode === "demo") return {};
     if (!process.env.TRACE_API_KEY) return {error:"Add TRACE_API_KEY on your server to use this mode."};
-    const trace = new Trace(process.env.TRACE_API_KEY, {retries:0, timeoutMs:95000});
+    const trace = new Trace(process.env.TRACE_API_KEY, {retries:0, timeoutMs:95000, baseUrl:process.env.TRACE_API_BASE_URL});
     if (mode === "sandbox") {
       const scenario = process.env.TRACE_SANDBOX_SCENARIO || "delivered";
       if (!["pending","in_transit","out_for_delivery","delivered","exception","unknown_timezone"].includes(scenario)) return {error:"Choose a supported TRACE_SANDBOX_SCENARIO."};

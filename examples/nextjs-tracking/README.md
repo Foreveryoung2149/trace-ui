@@ -83,3 +83,9 @@ public hosted tracking portal, refresh scheduler or complete order-management ap
 Node 22+, React 19, Next.js 16.3.8. Run root `npm test`, `npm run typecheck`, and
 `npm run build`. The optional Postgres test only uses an explicitly supplied
 isolated TRACE_STARTER_TEST_DATABASE_URL, never your application DATABASE_URL.
+
+After building, `npm run test:http -w trace-nextjs-starter` exercises the real
+Next.js server, private gate, server-side SDK and source-error UI against a local
+HTTP fixture. It sends no requests to Trace or carriers. TRACE_API_BASE_URL is
+reserved for this optional local test override; normal installations leave it
+unset and use https://api.traceapi.dev.
