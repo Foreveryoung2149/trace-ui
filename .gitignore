@@ -1,0 +1,14 @@
+node_modules/
+.next/
+dist/
+build/
+*.egg-info/
+__pycache__/
+*.tsbuildinfo
+next-env.d.ts
+.env*
+!.env.example
+*.log
+*.tgz
+*.whl
+*.pem

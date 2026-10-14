@@ -1,0 +1,33 @@
+{
+  "name": "@traceapi/sdk",
+  "version": "0.2.1",
+  "description": "Official server-side TypeScript client for Trace shipment tracking",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "license": "MIT",
+  "repository": {"type": "git", "url": "git+https://github.com/Foreveryoung2149/trace-ui.git", "directory": "clients/typescript"},
+  "homepage": "https://traceapi.dev/docs#official-clients",
+  "keywords": ["tracking", "shipment", "traceapi", "webhooks", "typescript"],
+  "publishConfig": {"access": "public"},
+  "devDependencies": {"typescript": "^5.9.3", "@types/node": "^22"},
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "npm run build && node --test test/*.test.js",
+    "prepack": "npm run build"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "name": "trace-ui-workspace",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "workspaces": ["packages/timeline", "examples/nextjs-tracking"],
+  "scripts": {
+    "dev": "npm run build -w @traceapi/timeline && npm run dev -w trace-nextjs-starter",
+    "build": "npm run build -w @traceapi/timeline && npm run build -w trace-nextjs-starter",
+    "test": "npm run build -w @traceapi/timeline && node --test packages/timeline/test/*.test.mjs && npm run test -w trace-nextjs-starter",
+    "typecheck": "npm run build -w @traceapi/timeline && npm run typecheck -w trace-nextjs-starter"
+  },
+  "devDependencies": {"typescript": "^5.9.3", "@types/react": "^19", "@types/react-dom": "^19", "@types/node": "^22"},
+  "engines": {"node": ">=22"}
+}

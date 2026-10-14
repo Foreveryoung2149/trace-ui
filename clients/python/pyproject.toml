@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "traceapi-sdk"
+version = "0.2.1"
+description = "Official server-side Python client for Trace shipment tracking"
+requires-python = ">=3.11"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+keywords = ["tracking", "shipment", "traceapi", "webhooks"]
+dependencies = []
+
+[tool.setuptools.packages.find]
+include = ["traceapi*"]
+
+[tool.setuptools.package-data]
+traceapi = ["py.typed"]
+
+[project.urls]
+Homepage = "https://traceapi.dev/docs"
+Repository = "https://github.com/Foreveryoung2149/trace-ui/tree/main/clients/python"

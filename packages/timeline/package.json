@@ -1,0 +1,23 @@
+{
+  "name": "@traceapi/timeline",
+  "version": "0.1.0",
+  "description": "Accessible, provider-independent React shipment timelines with honest freshness and timezone states",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {"types": "./dist/index.d.ts", "import": "./dist/index.js"},
+    "./samples": {"types": "./dist/samples.d.ts", "import": "./dist/samples.js"},
+    "./styles.css": "./dist/styles.css"
+  },
+  "sideEffects": ["**/*.css"],
+  "files": ["dist", "README.md", "LICENSE"],
+  "peerDependencies": {"react": "^18.2.0 || ^19.0.0"},
+  "devDependencies": {"react": "19.2.4", "react-dom": "19.2.4"},
+  "license": "MIT",
+  "repository": {"type": "git", "url": "git+https://github.com/Foreveryoung2149/trace-ui.git", "directory": "packages/timeline"},
+  "homepage": "https://traceapi.dev/tracking-timeline",
+  "keywords": ["react", "shipment", "tracking", "timeline", "ecommerce", "nextjs"],
+  "publishConfig": {"access": "public"},
+  "scripts": {"build": "tsc -p tsconfig.json && node build-css.mjs", "prepack": "npm run build"}
+}
