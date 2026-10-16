@@ -43,4 +43,27 @@ class ClientTests(unittest.TestCase):
         self.assertFalse(verify_webhook(raw, header, "new", now=1301))
         self.assertFalse(verify_webhook(raw, header+",t=1000", "new", now=1000))
 
+    def test_async_submit_retries_confirmed_rejection_with_same_key(self):
+        client = Trace("fixture-key")
+        responses = [Response(503, {"error": {"code": "busy"}}, {"Retry-After": "0"}), Response(202, {"job": {"status": "queued"}, "replayed": True})]
+        with patch.object(client._opener, "open", side_effect=responses) as opener, patch("time.sleep"):
+            result = client.create_tracking_job({"tracking_numbers": ["FIXTURE123"]}, idempotency_key="stable-async-key")
+        self.assertEqual(result["job"]["status"], "queued")
+        self.assertEqual(opener.call_count, 2)
+        self.assertTrue(all(call[0][0].headers["Idempotency-key"] == "stable-async-key" for call in opener.call_args_list))
+
+    def test_cancel_and_resolution_do_not_retry(self):
+        for invoke in [lambda client: client.cancel_tracking_job("job_fixture"), lambda client: client.resolve_alert("alert_fixture", "Investigated")]:
+            client = Trace("fixture-key")
+            with patch.object(client._opener, "open", return_value=Response(503, {"error": {"code": "busy"}}, {"Retry-After": "0"})) as opener:
+                with self.assertRaises(TraceError): invoke(client)
+            self.assertEqual(opener.call_count, 1)
+
+    def test_async_result_keeps_null_time_and_query(self):
+        client = Trace("fixture-key")
+        payload = {"data": [{"row": 1, "result": {"events": [{"timestamp": None, "timestamp_timezone": "unknown"}]}}], "next_row": None}
+        with patch.object(client._opener, "open", return_value=Response(200, payload)) as opener:
+            self.assertEqual(client.tracking_job_results("job_fixture", after_row=0, limit=20), payload)
+        self.assertTrue(opener.call_args[0][0].full_url.endswith("/results?after_row=0&limit=20"))
+
 if __name__ == "__main__": unittest.main()

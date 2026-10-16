@@ -1,6 +1,12 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { authorizedPreview, starterMode } from "./lib/access";
 export function proxy(request: NextRequest) {
+  if(request.nextUrl.pathname!=="/"&&request.nextUrl.pathname!=="/api/track") {
+    const response=NextResponse.next();
+    response.headers.set("Cache-Control","private, no-store");
+    response.headers.set("Referrer-Policy","no-referrer");
+    return response;
+  }
   try {
     if (starterMode(process.env.TRACE_MODE) === "demo") return NextResponse.next();
     if (!process.env.STARTER_ACCESS_TOKEN || process.env.STARTER_ACCESS_TOKEN.length < 24) return new NextResponse("Set a strong STARTER_ACCESS_TOKEN before enabling sandbox or live mode.", {status:503, headers:{"Cache-Control":"no-store"}});
@@ -11,4 +17,4 @@ export function proxy(request: NextRequest) {
   } catch { return new NextResponse("Invalid starter configuration", {status:503, headers:{"Cache-Control":"no-store"}}); }
 }
 // The webhook route has its own raw-body signature verification, not browser auth.
-export const config = {matcher: ["/", "/api/track"]};
+export const config = {matcher: ["/", "/api/track", "/orders/:path*", "/sign-in", "/api/orders", "/api/session"]};

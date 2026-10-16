@@ -40,3 +40,13 @@ test('live preview requires strong separate access credential and unknown modes 
   assert.equal(authorizedPreview('Basic '+Buffer.from(`other:${password}`).toString('base64'),password),false);
   assert.equal(authorizedPreview(null,password),false);
 });
+test('rotation overlap accepts previous secret only until its configured expiry',async()=>{
+  let calls=0;const old='fixture-previous-signing-secret';const raw=JSON.stringify(event);
+  const previousSignature=`t=${now/1000},v1=${createHmac('sha256',old).update(`${now/1000}.`).update(raw).digest('hex')}`;
+  const store=async()=>{calls++;return true;};
+  const previousRequest=()=>request(raw,{'Trace-Signature':previousSignature});
+  const overlap=createWebhookHandler({secret,previousSecret:{value:old,expiresAt:now+1000},now:()=>now,store});
+  assert.equal((await overlap(previousRequest())).status,200);
+  const expired=createWebhookHandler({secret,previousSecret:{value:old,expiresAt:now-1},now:()=>now,store});
+  assert.equal((await expired(previousRequest())).status,401);assert.equal(calls,1);
+});

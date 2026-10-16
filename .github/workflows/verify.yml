@@ -29,4 +29,10 @@ jobs:
       - run: npm run typecheck
       - run: npm run build
       - run: npm run test:http -w trace-nextjs-starter
+      - run: npm run test:orders:http -w trace-nextjs-starter
+      - name: Install isolated browser-test dependencies
+        run: npm install --no-save --package-lock=false --ignore-scripts puppeteer@25.3.0 @axe-core/puppeteer@4.14.0
+      - run: npx puppeteer browsers install chrome
+      - run: npm run test:orders:http -w trace-nextjs-starter
+        env: {TRACE_STARTER_BROWSER_TEST: "1"}
       - run: npm pack --workspace @traceapi/timeline --dry-run

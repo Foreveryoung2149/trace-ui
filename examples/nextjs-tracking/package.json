@@ -1,7 +1,7 @@
 {
-  "name":"trace-nextjs-starter", "private":true, "version":"0.1.0", "type":"module",
-  "scripts":{"dev":"next dev","build":"next build","start":"next start","typecheck":"tsc --noEmit","test":"node --experimental-strip-types --test test/*.test.mjs","test:http":"node scripts/test-http.mjs","webhook:setup":"node scripts/setup-webhooks.mjs"},
-  "dependencies":{"@traceapi/timeline":"0.1.0","@traceapi/sdk":"https://traceapi.dev/downloads/traceapi-sdk-0.2.0.tgz","next":"16.3.8","react":"19.2.4","react-dom":"19.2.4","pg":"8.23.1","server-only":"0.0.1"},
+  "name":"trace-nextjs-starter", "private":true, "version":"0.2.0", "type":"module",
+  "scripts":{"dev":"next dev","build":"next build","start":"next start","typecheck":"tsc --noEmit","test":"node --experimental-strip-types --test test/*.test.mjs","test:http":"node scripts/test-http.mjs","test:orders:http":"node --experimental-strip-types scripts/test-orders-http.mjs","webhook:setup":"node scripts/setup-webhooks.mjs","starter:setup":"node --experimental-strip-types scripts/starter.mjs setup","customer:create":"node --experimental-strip-types scripts/starter.mjs customer","fixture:seed":"node --experimental-strip-types scripts/starter.mjs seed","fixture:emit":"node --experimental-strip-types scripts/starter.mjs emit","worker":"node --experimental-strip-types scripts/starter.mjs worker","starter:status":"node --experimental-strip-types scripts/starter.mjs status","order:connect":"node --experimental-strip-types scripts/starter.mjs connect"},
+  "dependencies":{"@traceapi/timeline":"0.2.0","@traceapi/sdk":"file:../../vendor/traceapi-sdk-0.3.0.tgz","next":"16.3.8","react":"19.2.4","react-dom":"19.2.4","pg":"8.23.1","server-only":"0.0.1"},
   "devDependencies":{"@types/pg":"^8.15.6"},
   "engines":{"node":">=22"}
 }

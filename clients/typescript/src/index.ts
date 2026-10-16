@@ -1,5 +1,5 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
-import type { Shipment, ShipmentInput, ShipmentPatch, ImportInput, ImportJob, ImportResult, AnalyticsReport, TrackingResult, SandboxTrackingResult, ShipmentAlert, Carrier, Webhook, WebhookDelivery, WebhookAttempt, BatchItemError } from "./models.js";
+import type { Shipment, ShipmentInput, ShipmentPatch, ImportInput, ImportJob, ImportResult, AnalyticsReport, TrackingResult, SandboxTrackingResult, ShipmentAlert, Carrier, Webhook, WebhookDelivery, WebhookAttempt, BatchItemError, TrackingJobInput, TrackingJob, TrackingJobResult, ReliabilityReport, AlertActivity } from "./models.js";
 export * from "./models.js";
 export type Page<T> = { data: T[]; next_cursor: string | null };
 export class TraceError extends Error {
@@ -18,12 +18,12 @@ export class Trace {
   }
   async request<T>(method: string, path: string, body?: unknown, options: RequestOptions = {}): Promise<T> {
     if (!path.startsWith("/v1/") || path.includes("..") || path.startsWith("//")) throw new Error("Use a Trace /v1/ path");
-    const safe = method === "GET" || (Boolean(options.idempotencyKey) && ["/v1/shipments", "/v1/imports"].includes(path)) || ["/v1/track", "/v1/track/batch", "/v1/sandbox/track"].includes(path);
+    const safe = method === "GET" || (Boolean(options.idempotencyKey) && ["/v1/shipments", "/v1/imports", "/v1/tracking-jobs"].includes(path)) || ["/v1/track", "/v1/track/batch", "/v1/sandbox/track"].includes(path);
     const retries = safe ? this.options.retries ?? 2 : 0;
     for (let attempt = 0; ; attempt++) {
       const signal = options.signal ? AbortSignal.any([options.signal, AbortSignal.timeout(this.options.timeoutMs ?? 95000)]) : AbortSignal.timeout(this.options.timeoutMs ?? 95000);
       const response = await this.fetcher(this.baseUrl + path, { method, redirect: "error", signal,
-        headers: { Authorization: `Bearer ${this.apiKey}`, "Content-Type": "application/json", "User-Agent": "trace-typescript/0.2.1", ...(options.idempotencyKey ? { "Idempotency-Key": options.idempotencyKey } : {}) },
+        headers: { Authorization: `Bearer ${this.apiKey}`, "Content-Type": "application/json", "User-Agent": "trace-typescript/0.3.0", ...(options.idempotencyKey ? { "Idempotency-Key": options.idempotencyKey } : {}) },
         ...(body === undefined ? {} : { body: JSON.stringify(body) }) });
       const text = await response.text(); let parsed;
       try { parsed = text ? JSON.parse(text) : null; } catch { throw new TraceError(response.status, "invalid_response", "Trace returned an invalid JSON response", response.headers.get("X-Request-Id"), null, null); }
@@ -49,7 +49,16 @@ export class Trace {
   shipments(query: { limit?: number; cursor?: string; order_id?: string; status?: string } = {}) { return this.request<Page<Shipment>>("GET", `/v1/shipments${queryString(query)}`); }
   updateShipment(id: string, patch: ShipmentPatch) { return this.request<{ shipment: Shipment }>("PATCH", `/v1/shipments/${encodeURIComponent(id)}`, patch); }
   alerts(query: { limit?: number; cursor?: string; active?: string } = {}) { return this.request<Page<ShipmentAlert>>("GET", `/v1/alerts${queryString(query)}`); }
-  acknowledgeAlert(id: string) { return this.request<{ acknowledged: boolean }>("POST", `/v1/alerts/${encodeURIComponent(id)}/acknowledge`, {}); }
+  acknowledgeAlert(id: string) { return this.request<{ acknowledged: boolean; alert: ShipmentAlert }>("POST", `/v1/alerts/${encodeURIComponent(id)}/acknowledge`, {}); }
+  assignAlert(id: string, ownerLabel: string | null) { return this.request<{ alert: ShipmentAlert }>("PATCH", `/v1/alerts/${encodeURIComponent(id)}`, { owner_label: ownerLabel }); }
+  resolveAlert(id: string, note: string) { return this.request<{ alert: ShipmentAlert }>("POST", `/v1/alerts/${encodeURIComponent(id)}/resolve`, { note }); }
+  alertHistory(id: string, query: { limit?: number; cursor?: string } = {}) { return this.request<Page<AlertActivity>>("GET", `/v1/alerts/${encodeURIComponent(id)}/history${queryString(query)}`); }
+  createTrackingJob(input: TrackingJobInput, idempotencyKey: string) { return this.request<{ job: TrackingJob; replayed: boolean }>("POST", "/v1/tracking-jobs", input, { idempotencyKey }); }
+  trackingJobs(query: { limit?: number; cursor?: string } = {}) { return this.request<Page<TrackingJob>>("GET", `/v1/tracking-jobs${queryString(query)}`); }
+  trackingJob(id: string) { return this.request<{ job: TrackingJob }>("GET", `/v1/tracking-jobs/${encodeURIComponent(id)}`); }
+  trackingJobResults(id: string, query: { after_row?: number; limit?: number } = {}) { return this.request<{ data: TrackingJobResult[]; next_row: number | null; status: string }>("GET", `/v1/tracking-jobs/${encodeURIComponent(id)}/results${queryString(query)}`); }
+  cancelTrackingJob(id: string) { return this.request<{ job: TrackingJob }>("POST", `/v1/tracking-jobs/${encodeURIComponent(id)}/cancel`, {}); }
+  reliability(days = 30) { return this.request<ReliabilityReport>("GET", `/v1/analytics/reliability?days=${days}`); }
   createImport(input: ImportInput, idempotencyKey: string) { return this.request<{ job: ImportJob }>("POST", "/v1/imports", input, { idempotencyKey }); }
   importJob(id: string) { return this.request<{ job: ImportJob }>("GET", `/v1/imports/${encodeURIComponent(id)}`); }
   importResults(id: string, afterRow = 0) { return this.request<{ data: ImportResult[]; next_row: number | null; status: string }>("GET", `/v1/imports/${encodeURIComponent(id)}/results?after_row=${afterRow}`); }

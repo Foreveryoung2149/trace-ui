@@ -36,3 +36,24 @@ test("signature verification supports overlap; rejects altered body, expired tim
   assert.equal(verifyWebhook(body, header, "new", { now: timestamp * 1000 + 301000 }), false);
   assert.equal(verifyWebhook(body, header + ",t=1000", "new", { now: timestamp * 1000 }), false);
 });
+
+test("async submission retries only a confirmed rejection with its idempotency key intact", async () => {
+  let calls=0;
+  const client=new Trace("fixture-key",{fetch:async(url,options)=>{
+    assert.equal(new URL(url).pathname,"/v1/tracking-jobs");assert.equal(options.headers["Idempotency-Key"],"stable-async-key");
+    assert.deepEqual(JSON.parse(options.body),{tracking_numbers:["FIXTURE123"]});
+    return ++calls===1?Response.json({error:{code:"busy"}},{status:503,headers:{"Retry-After":"0"}}):Response.json({job:{id:"job_fixture",status:"queued"},replayed:true},{status:202});
+  }});
+  assert.equal((await client.createTrackingJob({tracking_numbers:["FIXTURE123"]},"stable-async-key")).job.status,"queued");assert.equal(calls,2);
+});
+test("cancellation and resolution never silently retry ambiguous mutations", async()=>{
+  for(const invoke of [client=>client.cancelTrackingJob("job_fixture"),client=>client.resolveAlert("alert_fixture","Investigated")]){
+    let calls=0;const client=new Trace("fixture-key",{fetch:async()=>{calls++;return Response.json({error:{code:"busy"}},{status:503,headers:{"Retry-After":"0"}});}});
+    await assert.rejects(invoke(client),TraceError);assert.equal(calls,1);
+  }
+});
+test("async reads retain revision and explicit unknown event times",async()=>{
+  const payload={data:[{row:1,status:"succeeded",result:{events:[{id:"scan_fixture",timestamp:null,timestamp_local:"2026-10-16T10:00:00",timestamp_timezone:"unknown"}]}}],next_row:null,status:"completed"};
+  const client=new Trace("fixture-key",{fetch:async url=>{assert.match(url,/after_row=0&limit=20/);return Response.json(payload);}});
+  assert.deepEqual(await client.trackingJobResults("job_fixture",{after_row:0,limit:20}),payload);
+});

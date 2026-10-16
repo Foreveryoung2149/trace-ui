@@ -41,8 +41,8 @@ class Trace:
     def request(self, method: str, path: str, body: Any = None, *, idempotency_key: str | None = None) -> Any:
         if not path.startswith("/v1/") or ".." in path:
             raise ValueError("Use a Trace /v1/ path")
-        safe = method == "GET" or (bool(idempotency_key) and path in ("/v1/shipments", "/v1/imports")) or path in ("/v1/track", "/v1/track/batch", "/v1/sandbox/track")
-        headers = {"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json", "User-Agent": "trace-python/0.2.1"}
+        safe = method == "GET" or (bool(idempotency_key) and path in ("/v1/shipments", "/v1/imports", "/v1/tracking-jobs")) or path in ("/v1/track", "/v1/track/batch", "/v1/sandbox/track")
+        headers = {"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json", "User-Agent": "trace-python/0.3.0"}
         if idempotency_key:
             headers["Idempotency-Key"] = idempotency_key
         data = json.dumps(body).encode() if body is not None else None
@@ -96,8 +96,35 @@ class Trace:
     def alerts(self, **query: str | int) -> dict[str, Any]:
         return self.request("GET", "/v1/alerts" + ("?" + urlencode(query) if query else ""))
 
-    def acknowledge_alert(self, alert_id: str) -> dict[str, bool]:
+    def acknowledge_alert(self, alert_id: str) -> dict[str, Any]:
         return self.request("POST", f"/v1/alerts/{quote(alert_id, safe='')}/acknowledge", {})
+
+    def assign_alert(self, alert_id: str, owner_label: str | None) -> dict[str, Any]:
+        return self.request("PATCH", f"/v1/alerts/{quote(alert_id, safe='')}", {"owner_label": owner_label})
+
+    def resolve_alert(self, alert_id: str, note: str) -> dict[str, Any]:
+        return self.request("POST", f"/v1/alerts/{quote(alert_id, safe='')}/resolve", {"note": note})
+
+    def alert_history(self, alert_id: str, **query: str | int) -> dict[str, Any]:
+        return self.request("GET", f"/v1/alerts/{quote(alert_id, safe='')}/history" + ("?" + urlencode(query) if query else ""))
+
+    def create_tracking_job(self, data: dict[str, Any], *, idempotency_key: str) -> dict[str, Any]:
+        return self.request("POST", "/v1/tracking-jobs", data, idempotency_key=idempotency_key)
+
+    def tracking_jobs(self, **query: str | int) -> dict[str, Any]:
+        return self.request("GET", "/v1/tracking-jobs" + ("?" + urlencode(query) if query else ""))
+
+    def tracking_job(self, job_id: str) -> dict[str, Any]:
+        return self.request("GET", f"/v1/tracking-jobs/{quote(job_id, safe='')}")
+
+    def tracking_job_results(self, job_id: str, *, after_row: int = 0, limit: int = 100) -> dict[str, Any]:
+        return self.request("GET", f"/v1/tracking-jobs/{quote(job_id, safe='')}/results?" + urlencode({"after_row": after_row, "limit": limit}))
+
+    def cancel_tracking_job(self, job_id: str) -> dict[str, Any]:
+        return self.request("POST", f"/v1/tracking-jobs/{quote(job_id, safe='')}/cancel", {})
+
+    def reliability(self, *, days: int = 30) -> dict[str, Any]:
+        return self.request("GET", f"/v1/analytics/reliability?days={days}")
 
     def create_import(self, data: ImportInput, *, idempotency_key: str) -> dict[str, ImportJob]:
         return self.request("POST", "/v1/imports", data, idempotency_key=idempotency_key)

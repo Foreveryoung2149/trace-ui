@@ -1,7 +1,7 @@
-# Official Trace Python client - 0.2.1
+# Official Trace Python client - 0.3.0
 
 ```sh
-pip install https://traceapi.dev/downloads/traceapi_sdk-0.2.1-py3-none-any.whl
+pip install https://traceapi.dev/downloads/traceapi_sdk-0.3.0-py3-none-any.whl
 ```
 
 ```python
@@ -15,7 +15,7 @@ result = trace.track('YOUR_NUMBER', carrier='ups')
 
 Requires Python 3.11+. Source is public at
 https://github.com/Foreveryoung2149/trace-ui/tree/main/clients/python.
-The future registry command is `pip install traceapi-sdk==0.2.1`; use the pinned
+The future registry command is `pip install traceapi-sdk==0.3.0`; use the pinned
 download until registry publication is confirmed.
 
 Server-side client for tracking, order-linked shipments, imports, action feeds,

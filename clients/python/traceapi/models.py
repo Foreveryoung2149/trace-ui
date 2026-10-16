@@ -15,7 +15,8 @@ TrackingEvent = TypedDict("TrackingEvent", {
     "timestamp": "str | None",
     "timestamp_local": "NotRequired[str]",
     "timestamp_timezone": "NotRequired[Literal[\"unknown\"]]",
-    "timestamp_precision": "NotRequired[Literal[\"minute\", \"second\"]]"
+    "timestamp_precision": "NotRequired[Literal[\"minute\", \"second\"]]",
+    "id": "NotRequired[str]"
 })
 
 TrackingResult = TypedDict("TrackingResult", {
@@ -29,7 +30,8 @@ TrackingResult = TypedDict("TrackingResult", {
     "warning": "NotRequired[dict[str, Any]]",
     "data_freshness": "NotRequired[dict[str, Any]]",
     "request_id": "NotRequired[str]",
-    "last_checked_at": "NotRequired[str]"
+    "last_checked_at": "NotRequired[str]",
+    "data_quality": "NotRequired[TrackingDataQuality]"
 })
 
 SandboxTrackingResult = TypedDict("SandboxTrackingResult", {
@@ -99,6 +101,7 @@ ShipmentPatch = TypedDict("ShipmentPatch", {
 
 Shipment = TypedDict("Shipment", {
     "id": "str",
+    "revision": "int",
     "tracking_number": "str",
     "carrier": "str | None",
     "order_id": "str | None",
@@ -108,6 +111,7 @@ Shipment = TypedDict("Shipment", {
     "status": "Literal[\"pending\", \"in_transit\", \"out_for_delivery\", \"customs\", \"delivered\", \"exception\"]",
     "active": "bool",
     "tracking": "TrackingResult | None",
+    "diagnostics": "ShipmentDiagnostics",
     "last_checked_at": "str | None",
     "last_error": "str | None",
     "next_refresh_at": "str",
@@ -135,9 +139,88 @@ ShipmentAlert = TypedDict("ShipmentAlert", {
     "active": "bool",
     "acknowledgedAt": "str | None",
     "resolvedAt": "str | None",
+    "ownerLabel": "str | None",
+    "workflowState": "Literal[\"open\", \"acknowledged\", \"resolved\"]",
+    "resolutionNote": "str | None",
     "createdAt": "str",
     "updatedAt": "str",
-    "shipment": "dict[str, Any]"
+    "shipment": "NotRequired[dict[str, Any]]"
+})
+
+ShipmentDiagnostics = TypedDict("ShipmentDiagnostics", {
+    "state": "Literal[\"quota_exhausted\", \"monitoring_expired\", \"retrieval_unavailable\", \"awaiting_first_observation\", \"closed\", \"monitoring\"]",
+    "hint": "str",
+    "last_successful_check_at": "str | None",
+    "next_scheduled_check_at": "str | None"
+})
+
+TrackingDataQuality = TypedDict("TrackingDataQuality", {
+    "schema_version": "Literal[1]",
+    "normalization_version": "Literal[\"trace-events-v1\"]",
+    "scan_count": "int",
+    "utc_scan_count": "int",
+    "unknown_time_scan_count": "int",
+    "history_completeness": "Literal[\"unknown\"]",
+    "event_order": "Literal[\"supplied\"]",
+    "evidence": "Literal[\"source_reported\"]"
+})
+
+AlertActivity = TypedDict("AlertActivity", {
+    "id": "str",
+    "action": "str",
+    "actor": "Literal[\"system\", \"account_owner\"]",
+    "note": "str | None",
+    "ownerLabel": "str | None",
+    "createdAt": "str"
+})
+
+TrackingJobInput = TypedDict("TrackingJobInput", {
+    "tracking_numbers": "list[str]",
+    "carrier": "NotRequired[str]",
+    "allow_stale": "NotRequired[bool]"
+})
+
+TrackingJob = TypedDict("TrackingJob", {
+    "id": "str",
+    "status": "Literal[\"queued\", \"processing\", \"completed\", \"cancelled\", \"expired\"]",
+    "total": "int",
+    "processed": "int",
+    "succeeded": "int",
+    "failed": "int",
+    "cancel_requested": "bool",
+    "expires_at": "str",
+    "results_retained_until": "str | None",
+    "created_at": "str",
+    "updated_at": "str"
+})
+
+TrackingJobResult = TypedDict("TrackingJobResult", {
+    "row": "int",
+    "status": "Literal[\"queued\", \"processing\", \"succeeded\", \"failed\", \"cancelled\"]",
+    "result": "TrackingResult | None",
+    "error": "dict[str, Any] | None"
+})
+
+ReliabilityGroup = TypedDict("ReliabilityGroup", {
+    "origin": "str",
+    "carrier": "str",
+    "state": "Literal[\"live\", \"cached\", \"stale\", \"failed\"]",
+    "count": "int",
+    "p50_duration_ms": "float",
+    "p95_duration_ms": "float",
+    "first_observed_at": "str",
+    "last_observed_at": "str"
+})
+
+ReliabilityReport = TypedDict("ReliabilityReport", {
+    "window_days": "int",
+    "from": "str",
+    "to": "str",
+    "scope": "Literal[\"account_lookup_outcomes\"]",
+    "not_a_carrier_sla": "Literal[True]",
+    "totals": "dict[str, Any]",
+    "groups": "list[ReliabilityGroup]",
+    "caveat": "str"
 })
 
 ImportJob = TypedDict("ImportJob", {
@@ -223,4 +306,14 @@ AnalyticsReport = TypedDict("AnalyticsReport", {
     "excluded_delivered_durations": "int",
     "median_observed_transit_hours": "float | None",
     "cohorts": "list[AnalyticsCohort]"
+})
+
+ShipmentWebhookEvent = TypedDict("ShipmentWebhookEvent", {
+    "event_id": "str",
+    "event_type": "Literal[\"shipment.updated\", \"shipment.delivered\", \"shipment.alert\"]",
+    "created_at": "str",
+    "shipment_revision": "int",
+    "shipment": "Shipment",
+    "tracking": "TrackingResult | None",
+    "alert": "NotRequired[ShipmentAlert]"
 })
