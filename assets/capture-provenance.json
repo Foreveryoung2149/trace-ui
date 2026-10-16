@@ -1,0 +1,28 @@
+{
+  "capturedAt": "2026-10-16T04:18:58.876Z",
+  "source": "https://traceapi.dev/timeline-builder",
+  "product": "Trace UI 0.2.0",
+  "syntheticSamplesOnly": true,
+  "customerData": false,
+  "artificialMockup": false,
+  "captures": [
+    {
+      "file": "timeline-builder.png",
+      "view": "single shipment, dark, fictional delivered sample",
+      "x": 240.00001525878906,
+      "y": 389.3482360839844,
+      "width": 1120,
+      "height": 1027.1161193847656
+    },
+    {
+      "file": "split-order.png",
+      "view": "two independent fictional parcel journeys"
+    },
+    {
+      "file": "trace-ui-social.png",
+      "view": "unmodified public builder viewport",
+      "width": 1200,
+      "height": 630
+    }
+  ]
+}
