@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "traceapi-sdk"
-version = "0.2.1"
+version = "0.3.0"
 description = "Official server-side Python client for Trace shipment tracking"
 requires-python = ">=3.11"
 readme = "README.md"

@@ -24,7 +24,11 @@ dark themes. This uses local fixtures, makes no API calls and does not track vis
 
 - `packages/timeline`: a typed, SSR-compatible React component and plain CSS.
 - `examples/nextjs-tracking`: demo, private server-side Trace connection, and a
-  raw-body signed-webhook receiver backed by a Postgres inbox.
+  customer-scoped order example with signed persistence, revisioned processing
+  and a durable Postgres inbox. Fictional two-parcel scenarios work locally.
+- `templates`: reusable order page, merchant support panel and read-only return
+  timeline. All accept supplied provider-neutral data.
+- `tools/webhook-doctor.mjs`: offline raw-signature and receiver-status diagnostics.
 - `clients/typescript` and `clients/python`: Trace server-side SDK source in the
   public release repository. These clients are Trace-specific; the UI is not.
 
@@ -38,9 +42,11 @@ Follow the [starter guide](examples/nextjs-tracking/README.md). Use sandbox firs
 it exercises API authentication without carrier lookups. Live tracking depends
 on source availability and uses your account's lookup allowance.
 
-The starter is a private integration preview, not a public customer-tracking
-portal. Replace its Basic access gate with your own tenant/order authentication,
-refresh scheduling, rate limits and privacy policy before building a storefront.
+The root Trace connection retains its private preview gate. The separate order
+example authorizes every read through a server-configured tenant and customer
+session; a preview password never authorizes customer orders. Follow the starter
+guide to provision identities, run the processor and configure live access.
+Adapt identity, operational limits and privacy policy to your deployment.
 
 ## Development
 
@@ -52,6 +58,11 @@ npm run build
 
 Unit tests use fixtures; they do not prove carrier-source reliability. The
 optional Postgres test needs an isolated `TRACE_STARTER_TEST_DATABASE_URL`.
+
+Explore the [visual builder](https://traceapi.dev/timeline-builder),
+[free tools](https://traceapi.dev/tracking-tools) and [template gallery](templates/README.md).
+The builder validates structure and formats evidence; it does not verify a
+parcel's physical movement. Pasted JSON remains local to the page.
 
 ## Distribution
 

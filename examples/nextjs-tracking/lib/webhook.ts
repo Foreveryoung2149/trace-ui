@@ -1,8 +1,8 @@
 import { verifyWebhook } from "@traceapi/sdk";
 export type InboxEvent = {event_id:string; event_type:string; created_at:string; [key:string]:unknown};
-type Dependencies = {secret:string|undefined; store:(event:InboxEvent)=>Promise<boolean>; now?:()=>number};
+type Dependencies = {secret:string|undefined; previousSecret?:{value:string;expiresAt:number}; store:(event:InboxEvent)=>Promise<boolean>; now?:()=>number};
 const reply = (status:number,body:object) => Response.json(body,{status,headers:{"Cache-Control":"no-store"}});
-export function createWebhookHandler({secret,store,now=Date.now}: Dependencies) {
+export function createWebhookHandler({secret,previousSecret,store,now=Date.now}: Dependencies) {
   return async function POST(request:Request):Promise<Response> {
     if (!secret) return reply(503,{error:"webhook_not_configured"});
     const header = request.headers.get("Trace-Signature");
@@ -17,7 +17,8 @@ export function createWebhookHandler({secret,store,now=Date.now}: Dependencies) 
       for (;;) {const chunk=await reader.read();if(chunk.done)break;size+=chunk.value.byteLength;if(size>limit){await reader.cancel();return reply(413,{error:"payload_too_large"});}chunks.push(chunk.value);}
     } catch {return reply(400,{error:"body_read_failed"});}
     const raw=Buffer.concat(chunks);
-    if (!verifyWebhook(raw,header,secret,{now:now()})) return reply(401,{error:"invalid_signature"});
+    const verified=verifyWebhook(raw,header,secret,{now:now()}) || Boolean(previousSecret && previousSecret.expiresAt>now() && verifyWebhook(raw,header,previousSecret.value,{now:now()}));
+    if (!verified) return reply(401,{error:"invalid_signature"});
     let event:InboxEvent;
     try {
       const parsed:unknown=JSON.parse(raw.toString("utf8"));

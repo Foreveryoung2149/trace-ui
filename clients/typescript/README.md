@@ -1,7 +1,7 @@
-# Official Trace TypeScript client - 0.2.1
+# Official Trace TypeScript client - 0.3.0
 
 ```sh
-npm install https://traceapi.dev/downloads/traceapi-sdk-0.2.1.tgz
+npm install https://traceapi.dev/downloads/traceapi-sdk-0.3.0.tgz
 ```
 
 ```ts
@@ -15,7 +15,7 @@ const result = await trace.track({tracking_number: 'YOUR_NUMBER', carrier: 'ups'
 Requires Node 22+. Keep this client on the server. The UI component is a separate
 package: https://traceapi.dev/tracking-timeline. Source is public at
 https://github.com/Foreveryoung2149/trace-ui/tree/main/clients/typescript.
-The future registry command is `npm install @traceapi/sdk@0.2.1`; use the pinned
+The future registry command is `npm install @traceapi/sdk@0.3.0`; use the pinned
 download until registry publication is confirmed.
 
 Server-side client for tracking, order-linked shipments, imports, action feeds,

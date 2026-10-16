@@ -1,9 +1,9 @@
 "use client";
 import { useState } from "react";
 import { ShipmentTimeline, type TimelineShipment } from "../src/index";
-import { sampleShipments } from "../src/samples";
+import { sampleShipments, sampleScenarioLabels } from "../src/samples";
 import "./demo.css";
-const scenarios = [["delivered", "Delivered"], ["in_transit", "In transit"], ["out_for_delivery", "Out for delivery"], ["exception", "Exception"], ["customs", "Customs"], ["unknown_timezone", "Unknown timezone"], ["stale", "Stale data"], ["pending", "No scans"], ["unavailable", "Unavailable"]];
+const scenarios = Object.entries(sampleScenarioLabels);
 export default function TimelineDemo({shipment}: {shipment?: TimelineShipment}) {
   const [scenario, setScenario] = useState("delivered");
   const [theme, setTheme] = useState<"dark" | "light">("dark");
